@@ -1,0 +1,47 @@
+[property]
+gie-unique-id=1
+
+# Model and engine files
+# onnx-file=/home/moliris-ros2/depth_anything_v3_deepstream/models/DA3-SMALL.onnx
+# model-engine-file=/home/moliris-ros2/depth_anything_v3_deepstream/models/DA3-SMALL.onnx_b1_gpu0_fp16.engine
+
+onnx-file=/home/moliris-ros2/depth_anything_v3_deepstream/models/DA3METRIC-LARGE.onnx
+model-engine-file=/home/moliris-ros2/depth_anything_v3_deepstream/models/DA3METRIC-LARGE.onnx_b1_gpu0_fp16.engine
+
+gpu-id=0
+batch-size=1
+# FP16
+network-mode=2
+# primary inference: DA3 takes raw frames directly
+process-mode=1
+# custom network (raw tensor output, not detection/classification)
+network-type=100
+# attach NvDsInferTensorMeta to frame user meta for probe
+output-tensor-meta=1
+
+# Primary model: receives raw NV12 frames from nvstreammux, NOT upstream feature tensors
+input-tensor-from-meta=0
+
+# interval = 1
+
+
+
+# Input tensor
+# infer-dims=3;392;392
+infer-dims=3;504;504
+
+# DA3 was trained with ImageNet RGB normalization (PyTorch torchvision convention).
+# DeepStream applies: output = (pixel - offset) * net_scale_factor
+#
+# Target: (pixel/255 - mean) / std
+#   mean = [0.485, 0.456, 0.406]  ->  offsets = mean * 255 = [123.675, 116.28, 103.53]
+#   std  = [0.229, 0.224, 0.225]  ->  single scale ~= 1/(255 * 0.2260) ~= 0.01735
+#   (stds differ by <2%; single scale is a good approximation)
+#
+# model-color-format=1 feeds RGB to the network (DA3 expects RGB, not BGR)
+model-color-format=1
+offsets=123.675;116.28;103.53
+net-scale-factor=0.0173520735727919486
+
+# Output: single tensor "depth"
+output-blob-names=depth
